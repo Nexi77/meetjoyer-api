@@ -1,0 +1,4 @@
+root = true
+# line endings
+[*]
+end_of_line = lf
