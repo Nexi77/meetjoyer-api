@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -18,6 +19,21 @@ async function bootstrap() {
     }),
   );
   app.enableCors();
+
+  // swagger config
+  const config = new DocumentBuilder()
+    .setTitle('meetjoyer-api')
+    .setDescription(
+      "API that provides data for events/meetings and let's you chat with each other",
+    )
+    .setVersion('1.0')
+    .addTag('meeting')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(3333);
 }
 bootstrap();

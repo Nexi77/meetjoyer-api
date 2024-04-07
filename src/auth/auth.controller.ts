@@ -15,11 +15,18 @@ import {
   GetCurrentUserId,
   PublicRoute,
 } from 'src/common/decorators';
+import {
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @ApiConflictResponse()
   @PublicRoute()
   @Post('local/signup')
   @HttpCode(HttpStatus.CREATED)
@@ -27,6 +34,7 @@ export class AuthController {
     return this.authService.signupLocal(dto);
   }
 
+  @ApiForbiddenResponse()
   @PublicRoute()
   @Post('local/signin')
   @HttpCode(HttpStatus.OK)
@@ -34,12 +42,16 @@ export class AuthController {
     return this.authService.signinLocal(dto);
   }
 
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@GetCurrentUserId() userId: number) {
     return this.authService.logout(userId);
   }
 
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
   @PublicRoute()
   @UseGuards(RtGuard)
   @Post('refresh')
