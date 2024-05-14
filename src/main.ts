@@ -27,7 +27,6 @@ async function bootstrap() {
       "API that provides data for events/meetings and let's you chat with each other",
     )
     .setVersion('1.0')
-    .addTag('meeting')
     .addBearerAuth()
     .build();
 

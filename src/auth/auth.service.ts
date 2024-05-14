@@ -19,16 +19,21 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signupLocal(dto: AuthSignupDto): Promise<Tokens> {
+  async signupLocal(dto: AuthSignupDto, roles?: string[]): Promise<Tokens> {
     const hash = await this.hashData(dto.password);
     try {
       const newUser = await this.prisma.user.create({
         data: {
           email: dto.email,
           hash,
+          roles: roles,
         },
       });
-      const tokens = await this.getTokens(newUser.id, newUser.email);
+      const tokens = await this.getTokens(
+        newUser.id,
+        newUser.email,
+        newUser.roles,
+      );
       await this.updateRtHash(newUser.id, tokens.refresh_token);
       return tokens;
     } catch (ex) {
@@ -42,13 +47,12 @@ export class AuthService {
         email: dto.email,
       },
     });
-
     if (!user) throw new ForbiddenException(ExceptionMessages.UserNotFound);
 
     const passwordMatches = await bcrypt.compare(dto.password, user.hash);
-    if (!passwordMatches) throw new ForbiddenException('Access Denied');
 
-    const tokens = await this.getTokens(user.id, user.email);
+    if (!passwordMatches) throw new ForbiddenException('Access Denied');
+    const tokens = await this.getTokens(user.id, user.email, user.roles);
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
@@ -84,7 +88,7 @@ export class AuthService {
     if (!rtMatches)
       throw new ForbiddenException(ExceptionMessages.AccessDenied);
 
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.roles);
     await this.updateRtHash(user.id, tokens.refresh_token);
     return tokens;
   }
@@ -108,12 +112,17 @@ export class AuthService {
     );
   }
 
-  async getTokens(userId: number, email: string): Promise<Tokens> {
+  async getTokens(
+    userId: number,
+    email: string,
+    roles: string[],
+  ): Promise<Tokens> {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(
         {
           sub: userId,
           email,
+          roles: roles,
         },
         {
           secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
