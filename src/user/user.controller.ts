@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -65,19 +66,24 @@ export class UserController {
   }
 
   @Post('admin/create')
+  @UseGuards(AdminGuard)
+  @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async createAdmin(@Body() dto: AuthSignupDto): Promise<Tokens> {
     return this.authService.signupLocal(dto, ['ADMIN']);
   }
 
-  //   @Delete(':id')
-  //   @Roles(UserRole.Admin)
-  //   @ApiOkResponse({ description: 'User deleted successfully.' })
-  //   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
-  //   @ApiNotFoundResponse({ description: 'User not found.' })
-  //   async deleteUser(
-  //     @Param('id') id: number,
-  //     @GetUser() user: User,
-  //   ): Promise<void> {
-  //     await this.userService.deleteUser(id, user);
-  //   }
+  @Delete(':id')
+  @ApiOkResponse({ description: 'User deleted successfully.' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
+  @ApiNotFoundResponse({ description: 'User not found.' })
+  async deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+    @GetCurrentUser() user: User,
+    @GetCurrentUserId() userId: number,
+  ): Promise<void> {
+    if (id !== userId && !user.roles.includes(Roles.ADMIN)) {
+      throw new ForbiddenException('You are not allowed to delete this user.');
+    }
+    await this.userService.deleteUser(id);
+  }
 }
