@@ -1,7 +1,9 @@
+import { Role } from '@prisma/client';
+
 export class User {
   id: number;
   email: string;
-  roles: string[];
+  roles: Role[];
   updatedAt: Date;
   createdAt: Date;
   hash: string;
@@ -11,7 +13,7 @@ export class User {
 export class SafeUser {
   id: number;
   email: string;
-  roles: string[];
+  roles: Role[];
   updatedAt: Date;
   createdAt: Date;
 }

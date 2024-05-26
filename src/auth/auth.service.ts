@@ -10,7 +10,7 @@ import { Tokens } from './types';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ExceptionMessages } from 'src/common/validation/messages.validation.enum';
-
+import { Role } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,7 +19,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signupLocal(dto: AuthSignupDto, roles?: string[]): Promise<Tokens> {
+  async signupLocal(dto: AuthSignupDto, roles?: Role[]): Promise<Tokens> {
     const hash = await this.hashData(dto.password);
     try {
       const newUser = await this.prisma.user.create({
@@ -115,7 +115,7 @@ export class AuthService {
   async getTokens(
     userId: number,
     email: string,
-    roles: string[],
+    roles: Role[],
   ): Promise<Tokens> {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(

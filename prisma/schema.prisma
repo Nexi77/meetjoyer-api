@@ -15,10 +15,44 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  email    String   @unique
+  email    String  @unique
   hash     String
   hashedRt String?
-  roles    String[] @default(["USER"])
+  roles    Role[]  @default([USER])
+
+  organisedEvents Event[] @relation("OrganisedEvents")
+  speakingEvents  Event[] @relation("SpeakerEvents")
+  attendingEvents Event[] @relation("ParticipantEvents")
 
   @@map("users")
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name         String
+  location     String
+  organiserId  Int
+  organiser    User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
+  speakers     User[]    @relation("SpeakerEvents")
+  participants User[]    @relation("ParticipantEvents")
+  eventType    EventType
+
+  @@map("events")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SPEAKER
+}
+
+enum EventType {
+  LECTURE
+  CONFERENCE
+  MONASTERY
+  WORKSHOP
+  MEETUP
 }
