@@ -20,9 +20,10 @@ model User {
   hashedRt String?
   roles    Role[]  @default([USER])
 
-  organisedEvents Event[] @relation("OrganisedEvents")
-  speakingEvents  Event[] @relation("SpeakerEvents")
-  attendingEvents Event[] @relation("ParticipantEvents")
+  organisedEvents   Event[]   @relation("OrganisedEvents")
+  speakingLectures  Lecture[] @relation("SpeakerLectures")
+  attendingLectures Lecture[] @relation("ParticipantLectures")
+  Message           Message[]
 
   @@map("users")
 }
@@ -32,15 +33,55 @@ model Event {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name         String
-  location     String
-  organiserId  Int
-  organiser    User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
-  speakers     User[]    @relation("SpeakerEvents")
-  participants User[]    @relation("ParticipantEvents")
-  eventType    EventType
+  name        String
+  location    String
+  organiserId Int
+  organiser   User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
+  lectures    Lecture[]
+  eventType   EventType
 
   @@map("events")
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  lectureId Int       @unique
+  lecture   Lecture   @relation(fields: [lectureId], references: [id])
+  messages  Message[]
+
+  @@map("chats")
+}
+
+model Lecture {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+
+  eventId      Int
+  event        Event  @relation(fields: [eventId], references: [id])
+  speakerId    Int
+  speaker      User   @relation("SpeakerLectures", fields: [speakerId], references: [id])
+  participants User[] @relation("ParticipantLectures")
+  chat         Chat?
+
+  @@map("lectures")
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  senderId  Int
+  sender    User     @relation(fields: [senderId], references: [id])
+  chatId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@map("messages")
 }
 
 enum Role {

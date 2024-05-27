@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './common/guards';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    EventsModule,
   ],
   providers: [
     {
