@@ -25,15 +25,16 @@ import { SafeUser, User } from './types';
 import { UserService } from './user.service';
 import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
 import { Roles } from 'src/auth/types/roles.types';
-import { AdminGuard } from 'src/common/guards';
+import { Roles as RolesDec } from 'src/common/decorators/roles.decorator';
 import { AuthService } from 'src/auth/auth.service';
 import { AuthSignupDto } from 'src/auth/dto';
 import { Tokens } from 'src/auth/types';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('Users')
 @Controller('users')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -58,7 +59,7 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(AdminGuard)
+  @RolesDec(Roles.ADMIN)
   @ApiOkResponse({ description: 'List of all users.', type: [User] })
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async getAllUsers(): Promise<SafeUser[]> {
@@ -66,7 +67,7 @@ export class UserController {
   }
 
   @Post('admin/create')
-  @UseGuards(AdminGuard)
+  @RolesDec(Roles.ADMIN)
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async createAdmin(@Body() dto: AuthSignupDto): Promise<Tokens> {
     return this.authService.signupLocal(dto, ['ADMIN']);
