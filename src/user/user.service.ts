@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SafeUser } from './types';
-import { UpdateUserDto } from './dto/user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { ExceptionMessages } from 'src/common/validation/messages.validation.enum';
+import { SafeUser } from './dto/safe-user.dto';
 
 @Injectable()
 export class UserService {

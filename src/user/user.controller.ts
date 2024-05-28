@@ -20,16 +20,17 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { UpdateUserDto } from './dto/user.dto';
-import { SafeUser, User } from './types';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 import { GetCurrentUser, GetCurrentUserId } from 'src/common/decorators';
-import { Roles } from 'src/auth/types/roles.types';
+import { Role as UserRole } from '@prisma/client';
 import { Roles as RolesDec } from 'src/common/decorators/roles.decorator';
 import { AuthService } from 'src/auth/auth.service';
 import { AuthSignupDto } from 'src/auth/dto';
 import { Tokens } from 'src/auth/types';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { SafeUser } from './dto/safe-user.dto';
+import { User } from './dto/user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -52,14 +53,14 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<SafeUser> {
-    if (id !== userId && !user.roles.includes(Roles.ADMIN)) {
+    if (id !== userId && !user.roles.includes(UserRole.ADMIN)) {
       throw new ForbiddenException('You are not allowed to update this user.');
     }
     return this.userService.updateUser(id, updateUserDto);
   }
 
   @Get()
-  @RolesDec(Roles.ADMIN)
+  @RolesDec(UserRole.ADMIN)
   @ApiOkResponse({ description: 'List of all users.', type: [User] })
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async getAllUsers(): Promise<SafeUser[]> {
@@ -67,7 +68,7 @@ export class UserController {
   }
 
   @Post('admin/create')
-  @RolesDec(Roles.ADMIN)
+  @RolesDec(UserRole.ADMIN)
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async createAdmin(@Body() dto: AuthSignupDto): Promise<Tokens> {
     return this.authService.signupLocal(dto, ['ADMIN']);
@@ -82,7 +83,7 @@ export class UserController {
     @GetCurrentUser() user: User,
     @GetCurrentUserId() userId: number,
   ): Promise<void> {
-    if (id !== userId && !user.roles.includes(Roles.ADMIN)) {
+    if (id !== userId && !user.roles.includes(UserRole.ADMIN)) {
       throw new ForbiddenException('You are not allowed to delete this user.');
     }
     await this.userService.deleteUser(id);

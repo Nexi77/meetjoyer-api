@@ -6,6 +6,7 @@ import { AtGuard } from './common/guards';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { EventsModule } from './events/events.module';
+import { LectureModule } from './lectures/lecture.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EventsModule } from './events/events.module';
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
     EventsModule,
+    LectureModule,
   ],
   providers: [
     {

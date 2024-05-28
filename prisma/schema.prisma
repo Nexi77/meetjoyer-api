@@ -37,7 +37,7 @@ model Event {
   location    String
   organiserId Int
   organiser   User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
-  lectures    Lecture[]
+  lectures    Lecture[] @relation("EventLectures")
   eventType   EventType
 
   @@map("events")
@@ -63,7 +63,7 @@ model Lecture {
   endTime     DateTime
 
   eventId      Int
-  event        Event  @relation(fields: [eventId], references: [id])
+  event        Event  @relation("EventLectures", fields: [eventId], references: [id])
   speakerId    Int
   speaker      User   @relation("SpeakerLectures", fields: [speakerId], references: [id])
   participants User[] @relation("ParticipantLectures")
@@ -88,6 +88,7 @@ enum Role {
   USER
   ADMIN
   SPEAKER
+  ORGANISER
 }
 
 enum EventType {
