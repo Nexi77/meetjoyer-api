@@ -9,17 +9,11 @@ import {
   HttpCode,
   Param,
   ParseIntPipe,
-  ForbiddenException,
   Patch,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
-import {
-  GetCurrentUser,
-  GetCurrentUserId,
-  PublicRoute,
-  Roles,
-} from 'src/common/decorators';
+import { GetCurrentUserId, PublicRoute, Roles } from 'src/common/decorators';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Role as UserRole } from '@prisma/client';
 import {
@@ -30,10 +24,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
   ApiOkResponse,
-  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { EventDto } from './dto/event.dto';
-import { User } from 'src/user/dto/user.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 
 @ApiTags('Events')
@@ -86,9 +78,6 @@ export class EventsController {
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Event not found' })
-  @ApiForbiddenResponse({
-    description: 'You are not allowed to delete this event',
-  })
   @ApiOkResponse({
     description: 'Event deleted successfully',
     type: String,
@@ -98,20 +87,13 @@ export class EventsController {
   @HttpCode(HttpStatus.OK)
   async deleteEventById(
     @Param('id', ParseIntPipe) id: number,
-    @GetCurrentUser() user: User,
   ): Promise<string> {
-    if (user.roles.includes(UserRole.ORGANISER) && user.id !== id) {
-      throw new ForbiddenException('You are not allowed to delete this event.');
-    }
     return this.eventsService.deleteEventById(id);
   }
 
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Event not found' })
-  @ApiForbiddenResponse({
-    description: 'You are not allowed to update this event',
-  })
   @ApiOkResponse({ description: 'Event updated successfully', type: String })
   @Roles(UserRole.ADMIN, UserRole.ORGANISER)
   @Patch(':id')
@@ -119,11 +101,7 @@ export class EventsController {
   async updateEvent(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEventDto: UpdateEventDto,
-    @GetCurrentUser() user: User,
   ): Promise<string> {
-    if (user.roles.includes(UserRole.ORGANISER) && user.id !== id) {
-      throw new ForbiddenException('You are not allowed to delete this event.');
-    }
     return this.eventsService.updateEvent(id, updateEventDto);
   }
 }

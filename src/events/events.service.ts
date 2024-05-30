@@ -9,14 +9,10 @@ import { LectureDto } from 'src/lectures/dto/lecture.dto';
 import { SafeUser } from 'src/user/dto/safe-user.dto';
 import { EventDto } from './dto/event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { LectureService } from 'src/lectures/lecture.service';
 
 @Injectable()
 export class EventsService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private readonly lectureService: LectureService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async createEvent(
     createEventDto: CreateEventDto,
@@ -92,6 +88,8 @@ export class EventsService {
       lectures: event.lectures.map((lecture) => ({
         id: lecture.id,
         title: lecture.title,
+        createdAt: lecture.createdAt,
+        updatedAt: lecture.updatedAt,
         startTime: lecture.startTime,
         endTime: lecture.endTime,
         speakerId: lecture.speakerId,
@@ -123,6 +121,8 @@ export class EventsService {
 
     const lectures: LectureDto[] = event.lectures.map((lecture) => ({
       id: lecture.id,
+      createdAt: lecture.createdAt,
+      updatedAt: lecture.updatedAt,
       title: lecture.title,
       startTime: lecture.startTime,
       endTime: lecture.endTime,
@@ -146,17 +146,19 @@ export class EventsService {
   ): Promise<string> {
     const existingEvent = await this.prismaService.event.findUnique({
       where: { id: eventId },
+      include: { lectures: true },
     });
     if (!existingEvent) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
 
     if (updateEventDto.lectures) {
-      const lecturesExist = await this.prismaService.lecture.findMany({
+      const existingLectures = await this.prismaService.lecture.findMany({
         where: { id: { in: updateEventDto.lectures } },
       });
 
-      if (lecturesExist.length !== updateEventDto.lectures.length) {
+      // Check if all provided lecture IDs exist
+      if (existingLectures.length !== updateEventDto.lectures.length) {
         throw new NotFoundException(
           'One or more provided lecture IDs do not exist',
         );
@@ -169,20 +171,20 @@ export class EventsService {
         name: updateEventDto.name,
         location: updateEventDto.location,
         eventType: updateEventDto.eventType,
-        // Set lectures using provided IDs
+        // Connect provided lectures and disconnect the rest
         lectures: {
-          // Create an object for each ID in the array
           connect: updateEventDto.lectures?.map((lectureId) => ({
             id: lectureId,
           })),
+          disconnect: updateEventDto.lectures
+            ? existingEvent.lectures.filter(
+                (lecture) => !updateEventDto.lectures?.includes(lecture.id),
+              )
+            : undefined,
         },
       },
       include: { lectures: true },
     });
-
-    if (updateEventDto.lectures && updateEventDto.lectures.length === 0) {
-      await this.lectureService.deleteLecturesByEventId(eventId);
-    }
 
     return `Event with id: ${eventId} successfully updated`;
   }
@@ -191,7 +193,6 @@ export class EventsService {
     // Find the event
     const event = await this.prismaService.event.findUnique({
       where: { id: eventId },
-      include: { lectures: true }, // Include lectures to delete them as well
     });
 
     if (!event) {
