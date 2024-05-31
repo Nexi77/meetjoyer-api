@@ -30,6 +30,19 @@ export class LectureService {
       );
     }
 
+    const participants = createLectureDto.participants
+      ? await this.prismaService.user.findMany({
+          where: { id: { in: createLectureDto.participants } },
+        })
+      : [];
+
+    if (
+      createLectureDto.participants &&
+      participants.length !== createLectureDto.participants.length
+    ) {
+      throw new NotFoundException('One or more participant IDs do not exist');
+    }
+
     return this.prismaService.lecture.create({
       data: {
         title: createLectureDto.title,
@@ -42,25 +55,32 @@ export class LectureService {
         speaker: {
           connect: { id: createLectureDto.speakerId },
         },
+        participants: {
+          connect: participants.map((participant) => ({ id: participant.id })),
+        },
       },
+      include: { participants: { select: { id: true } } },
     });
   }
 
   async getAllLectures(): Promise<Lecture[]> {
-    return this.prismaService.lecture.findMany({
+    const lectures = this.prismaService.lecture.findMany({
       include: {
         event: true,
         speaker: true,
+        participants: true,
       },
     });
+    return lectures;
   }
 
-  async getLectureById(lectureId: number): Promise<Lecture> {
+  async getLectureById(lectureId: number): Promise<LectureDto> {
     const lecture = await this.prismaService.lecture.findUnique({
       where: { id: lectureId },
       include: {
         event: true,
         speaker: true,
+        participants: true,
       },
     });
 
@@ -82,10 +102,11 @@ export class LectureService {
       throw new NotFoundException(`Lecture with ID ${lectureId} not found`);
     }
 
-    if (updateLectureDto.eventId) {
+    if (updateLectureDto.eventId !== null) {
       const event = await this.prismaService.event.findUnique({
         where: { id: updateLectureDto.eventId },
       });
+
       if (!event) {
         throw new NotFoundException(
           `Event with ID ${updateLectureDto.eventId} not found`,
@@ -93,7 +114,7 @@ export class LectureService {
       }
     }
 
-    if (updateLectureDto.speakerId) {
+    if (updateLectureDto.speakerId !== null) {
       const speaker = await this.prismaService.user.findUnique({
         where: { id: updateLectureDto.speakerId },
       });
@@ -102,6 +123,19 @@ export class LectureService {
           `Speaker with ID ${updateLectureDto.speakerId} not found`,
         );
       }
+    }
+
+    const participants = updateLectureDto.participants
+      ? await this.prismaService.user.findMany({
+          where: { id: { in: updateLectureDto.participants } },
+        })
+      : [];
+
+    if (
+      updateLectureDto.participants &&
+      participants.length !== updateLectureDto.participants.length
+    ) {
+      throw new NotFoundException('One or more participant IDs do not exist');
     }
 
     return this.prismaService.lecture.update({
@@ -113,7 +147,11 @@ export class LectureService {
         endTime: updateLectureDto.endTime,
         eventId: updateLectureDto.eventId,
         speakerId: updateLectureDto.speakerId,
+        participants: {
+          set: participants.map((participant) => ({ id: participant.id })),
+        },
       },
+      include: { participants: { select: { id: true } } },
     });
   }
 

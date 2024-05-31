@@ -27,4 +27,7 @@ export class LectureDto {
 
   @ApiProperty({ description: 'The ID of the event' })
   eventId: number | null;
+
+  @ApiProperty()
+  participants?: { id: number }[];
 }

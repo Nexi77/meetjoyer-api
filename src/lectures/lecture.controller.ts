@@ -42,6 +42,7 @@ export class LectureController {
     description: 'The lecture has been successfully created.',
     type: LectureDto,
   })
+  @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Invalid input' })
   @ApiNotFoundResponse({ description: 'Event or speaker not found' })
   async createLecture(
@@ -52,6 +53,7 @@ export class LectureController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
   @ApiOkResponse({ description: 'List of all lectures', type: [LectureDto] })
   async getAllLectures(): Promise<LectureDto[]> {
     const lectures = await this.lectureService.getAllLectures();
@@ -70,6 +72,7 @@ export class LectureController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
   @ApiOkResponse({ description: 'Details of the lecture', type: LectureDto })
   @ApiNotFoundResponse({ description: 'Lecture not found' })
   @ApiParam({ name: 'id', description: 'ID of the lecture to retrieve' })
@@ -86,6 +89,10 @@ export class LectureController {
       speakerId: lecture.speakerId,
       createdAt: lecture.createdAt,
       updatedAt: lecture.updatedAt,
+      participants:
+        lecture.participants?.map((participant) => ({
+          id: participant.id,
+        })) ?? [],
     };
   }
 
@@ -96,6 +103,7 @@ export class LectureController {
     description: 'The lecture has been successfully updated.',
     type: LectureDto,
   })
+  @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Invalid input' })
   @ApiNotFoundResponse({ description: 'Lecture, event, or speaker not found' })
   async updateLecture(
