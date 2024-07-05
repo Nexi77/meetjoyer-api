@@ -59,7 +59,7 @@ export class EventsController {
     description: 'Retrieved all events successfully',
     type: [Event],
   })
-  async getAllEvents(): Promise<EventDto[]> {
+  async getAllEvents() {
     return this.eventsService.getAllEvents();
   }
 
@@ -71,7 +71,7 @@ export class EventsController {
   @Get(':id')
   @PublicRoute()
   @HttpCode(HttpStatus.OK)
-  async getEventById(@Param('id', ParseIntPipe) id: number): Promise<EventDto> {
+  async getEventById(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.getEventById(id);
   }
 
@@ -85,9 +85,7 @@ export class EventsController {
   @Roles(UserRole.ADMIN, UserRole.ORGANISER)
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async deleteEventById(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<string> {
+  async deleteEventById(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.deleteEventById(id);
   }
 
@@ -101,7 +99,7 @@ export class EventsController {
   async updateEvent(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateEventDto: UpdateEventDto,
-  ): Promise<string> {
+  ) {
     return this.eventsService.updateEvent(id, updateEventDto);
   }
 }

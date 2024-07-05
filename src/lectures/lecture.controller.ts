@@ -45,9 +45,7 @@ export class LectureController {
   @ApiBearerAuth()
   @ApiBadRequestResponse({ description: 'Invalid input' })
   @ApiNotFoundResponse({ description: 'Event or speaker not found' })
-  async createLecture(
-    @Body() createLectureDto: CreateLectureDto,
-  ): Promise<LectureDto> {
+  async createLecture(@Body() createLectureDto: CreateLectureDto) {
     return this.lectureService.createLecture(createLectureDto);
   }
 
@@ -55,19 +53,19 @@ export class LectureController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'List of all lectures', type: [LectureDto] })
-  async getAllLectures(): Promise<LectureDto[]> {
-    const lectures = await this.lectureService.getAllLectures();
-    return lectures.map((lecture) => ({
-      id: lecture.id,
-      title: lecture.title,
-      description: lecture.description,
-      startTime: lecture.startTime,
-      endTime: lecture.endTime,
-      eventId: lecture.eventId,
-      speakerId: lecture.speakerId,
-      createdAt: lecture.createdAt,
-      updatedAt: lecture.updatedAt,
-    }));
+  async getAllLectures() {
+    // const lectures = await this.lectureService.getAllLectures();
+    // return lectures.map((lecture) => ({
+    //   id: lecture.id,
+    //   title: lecture.title,
+    //   description: lecture.description,
+    //   startTime: lecture.startTime,
+    //   endTime: lecture.endTime,
+    //   eventId: lecture.eventId,
+    //   speakerId: lecture.speakerId,
+    //   createdAt: lecture.createdAt,
+    //   updatedAt: lecture.updatedAt,
+    // }));
   }
 
   @Get(':id')
@@ -76,24 +74,22 @@ export class LectureController {
   @ApiOkResponse({ description: 'Details of the lecture', type: LectureDto })
   @ApiNotFoundResponse({ description: 'Lecture not found' })
   @ApiParam({ name: 'id', description: 'ID of the lecture to retrieve' })
-  async getLectureById(
-    @Param('id', ParseIntPipe) lectureId: number,
-  ): Promise<LectureDto> {
-    const lecture = await this.lectureService.getLectureById(lectureId);
-    return {
-      id: lecture.id,
-      title: lecture.title,
-      startTime: lecture.startTime,
-      endTime: lecture.endTime,
-      eventId: lecture.eventId,
-      speakerId: lecture.speakerId,
-      createdAt: lecture.createdAt,
-      updatedAt: lecture.updatedAt,
-      participants:
-        lecture.participants?.map((participant) => ({
-          id: participant.id,
-        })) ?? [],
-    };
+  async getLectureById(@Param('id', ParseIntPipe) lectureId: number) {
+    // const lecture = await this.lectureService.getLectureById(lectureId);
+    // return {
+    //   id: lecture.id,
+    //   title: lecture.title,
+    //   startTime: lecture.startTime,
+    //   endTime: lecture.endTime,
+    //   eventId: lecture.eventId,
+    //   speakerId: lecture.speakerId,
+    //   createdAt: lecture.createdAt,
+    //   updatedAt: lecture.updatedAt,
+    //   participants:
+    //     lecture.participants?.map((participant) => ({
+    //       id: participant.id,
+    //     })) ?? [],
+    // };
   }
 
   @Patch(':id')
@@ -109,7 +105,7 @@ export class LectureController {
   async updateLecture(
     @Param('id', ParseIntPipe) lectureId: number,
     @Body() updateLectureDto: UpdateLectureDto,
-  ): Promise<LectureDto> {
+  ) {
     return this.lectureService.updateLecture(lectureId, updateLectureDto);
   }
 
@@ -119,9 +115,7 @@ export class LectureController {
   @ApiNotFoundResponse({ description: 'Lecture not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiParam({ name: 'id', description: 'ID of the lecture to delete' })
-  async deleteLectureById(
-    @Param('id', ParseIntPipe) lectureId: number,
-  ): Promise<string> {
+  async deleteLectureById(@Param('id', ParseIntPipe) lectureId: number) {
     return await this.lectureService.deleteLectureById(lectureId);
   }
 }

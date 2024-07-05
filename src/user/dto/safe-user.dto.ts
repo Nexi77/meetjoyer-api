@@ -15,9 +15,11 @@ export class SafeUser {
   })
   roles: Role[];
 
-  @ApiProperty({ description: 'The date the user was last updated' })
-  updatedAt: Date;
-
-  @ApiProperty({ description: 'The date the user was created' })
-  createdAt: Date;
+  constructor(partial: Partial<SafeUser>) {
+    Object.assign(this, {
+      id: partial.id,
+      email: partial.email,
+      roles: partial.roles,
+    });
+  }
 }
