@@ -39,10 +39,10 @@ export class EventsController {
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
-  @ApiNotFoundResponse({ description: 'Cannot find lecutre with provided id' })
+  @ApiNotFoundResponse({ description: 'Cannot find lecture with provided id' })
   @ApiCreatedResponse({
     description: 'The event has been successfully created.',
-    type: CreateEventDto,
+    type: EventDto,
   })
   @HttpCode(HttpStatus.CREATED)
   createEvent(
@@ -57,7 +57,7 @@ export class EventsController {
   @Roles(UserRole.ADMIN)
   @ApiOkResponse({
     description: 'Retrieved all events successfully',
-    type: [Event],
+    type: [EventDto],
   })
   async getAllEvents() {
     return this.eventsService.getAllEvents();
@@ -78,21 +78,7 @@ export class EventsController {
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiNotFoundResponse({ description: 'Event not found' })
-  @ApiOkResponse({
-    description: 'Event deleted successfully',
-    type: String,
-  })
-  @Roles(UserRole.ADMIN, UserRole.ORGANISER)
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  async deleteEventById(@Param('id', ParseIntPipe) id: number) {
-    return this.eventsService.deleteEventById(id);
-  }
-
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @ApiNotFoundResponse({ description: 'Event not found' })
-  @ApiOkResponse({ description: 'Event updated successfully', type: String })
+  @ApiOkResponse({ description: 'Event updated successfully', type: EventDto })
   @Roles(UserRole.ADMIN, UserRole.ORGANISER)
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
@@ -101,5 +87,19 @@ export class EventsController {
     @Body() updateEventDto: UpdateEventDto,
   ) {
     return this.eventsService.updateEvent(id, updateEventDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiNotFoundResponse({ description: 'Event not found' })
+  @ApiOkResponse({
+    description: 'Event deleted successfully',
+    type: EventDto,
+  })
+  @Roles(UserRole.ADMIN, UserRole.ORGANISER)
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async deleteEventById(@Param('id', ParseIntPipe) id: number) {
+    return this.eventsService.deleteEventById(id);
   }
 }

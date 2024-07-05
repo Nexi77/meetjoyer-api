@@ -24,4 +24,15 @@ export class EventDto {
     type: [LectureDto],
   })
   lectures: LectureDto[];
+
+  constructor(init: EventDto) {
+    Object.assign(this, {
+      id: init.id,
+      name: init.name,
+      location: init.location,
+      eventType: init.eventType,
+      organiser: new SafeUser(init.organiser),
+      lectures: init.lectures?.map((lecture) => new LectureDto(lecture)) ?? [],
+    });
+  }
 }
