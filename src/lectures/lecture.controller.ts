@@ -54,18 +54,7 @@ export class LectureController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: 'List of all lectures', type: [LectureDto] })
   async getAllLectures() {
-    // const lectures = await this.lectureService.getAllLectures();
-    // return lectures.map((lecture) => ({
-    //   id: lecture.id,
-    //   title: lecture.title,
-    //   description: lecture.description,
-    //   startTime: lecture.startTime,
-    //   endTime: lecture.endTime,
-    //   eventId: lecture.eventId,
-    //   speakerId: lecture.speakerId,
-    //   createdAt: lecture.createdAt,
-    //   updatedAt: lecture.updatedAt,
-    // }));
+    return this.lectureService.getAllLectures();
   }
 
   @Get(':id')
@@ -75,21 +64,7 @@ export class LectureController {
   @ApiNotFoundResponse({ description: 'Lecture not found' })
   @ApiParam({ name: 'id', description: 'ID of the lecture to retrieve' })
   async getLectureById(@Param('id', ParseIntPipe) lectureId: number) {
-    // const lecture = await this.lectureService.getLectureById(lectureId);
-    // return {
-    //   id: lecture.id,
-    //   title: lecture.title,
-    //   startTime: lecture.startTime,
-    //   endTime: lecture.endTime,
-    //   eventId: lecture.eventId,
-    //   speakerId: lecture.speakerId,
-    //   createdAt: lecture.createdAt,
-    //   updatedAt: lecture.updatedAt,
-    //   participants:
-    //     lecture.participants?.map((participant) => ({
-    //       id: participant.id,
-    //     })) ?? [],
-    // };
+    return await this.lectureService.getLectureById(lectureId);
   }
 
   @Patch(':id')
@@ -110,12 +85,16 @@ export class LectureController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiNotFoundResponse({ description: 'Lecture not found' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiOkResponse({
+    description: 'The lecture has been successfully deleted.',
+    type: LectureDto,
+  })
   @ApiParam({ name: 'id', description: 'ID of the lecture to delete' })
   async deleteLectureById(@Param('id', ParseIntPipe) lectureId: number) {
-    return await this.lectureService.deleteLectureById(lectureId);
+    return this.lectureService.deleteLectureById(lectureId);
   }
 }
