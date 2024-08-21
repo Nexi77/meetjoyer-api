@@ -7,6 +7,8 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventDto } from './dto/event.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
 
 @Injectable()
 export class EventsService {
@@ -63,19 +65,31 @@ export class EventsService {
     return new EventDto(event);
   }
 
-  async getAllEvents() {
-    const events = await this.prismaService.event.findMany({
-      include: {
-        organiser: true,
-        lectures: {
-          include: {
-            speaker: true,
-            participants: true,
+  async getAllEvents(paginationDto: PaginationDto) {
+    const { skip, limit } = paginationDto;
+    const [data, total] = await Promise.all([
+      this.prismaService.event.findMany({
+        skip,
+        take: limit,
+        include: {
+          organiser: true,
+          lectures: {
+            include: {
+              speaker: true,
+              participants: true,
+            },
           },
         },
-      },
-    });
-    return events.map((event) => new EventDto(event));
+      }),
+      this.prismaService.event.count(),
+    ]);
+    const events = data.map((event) => new EventDto(event));
+    return new PaginatedResource<EventDto>(
+      events,
+      total,
+      paginationDto.page,
+      paginationDto.limit,
+    );
   }
 
   async getEventById(eventId: number) {

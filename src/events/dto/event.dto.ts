@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LectureDto } from 'src/lectures/dto/lecture.dto';
 import { SafeUser } from 'src/user/dto/safe-user.dto';
 import { EventType } from '@prisma/client';
@@ -25,6 +25,11 @@ export class EventDto {
   })
   lectures: LectureDto[];
 
+  @ApiPropertyOptional({
+    description: 'Main image of the event',
+  })
+  image: string | null;
+
   constructor(init: EventDto) {
     Object.assign(this, {
       id: init.id,
@@ -33,6 +38,7 @@ export class EventDto {
       eventType: init.eventType,
       organiser: new SafeUser(init.organiser),
       lectures: init.lectures?.map((lecture) => new LectureDto(lecture)) ?? [],
+      image: init.image,
     });
   }
 }

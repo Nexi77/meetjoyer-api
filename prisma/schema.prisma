@@ -39,6 +39,7 @@ model Event {
   organiser   User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
   lectures    Lecture[] @relation("EventLectures")
   eventType   EventType
+  image       String?
 
   @@map("events")
 }

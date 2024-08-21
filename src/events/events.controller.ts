@@ -10,6 +10,8 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Query,
+  UsePipes,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -27,6 +29,9 @@ import {
 } from '@nestjs/swagger';
 import { EventDto } from './dto/event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
+import { ApiPaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
+import { PaginationPipe } from 'src/common/pipes/pagination.pipe';
 
 @ApiTags('Events')
 @Controller('events')
@@ -54,13 +59,10 @@ export class EventsController {
 
   @Get()
   @ApiBearerAuth()
-  @Roles(UserRole.ADMIN)
-  @ApiOkResponse({
-    description: 'Retrieved all events successfully',
-    type: [EventDto],
-  })
-  async getAllEvents() {
-    return this.eventsService.getAllEvents();
+  @ApiPaginatedResponse(EventDto)
+  @UsePipes(PaginationPipe)
+  async getAllEvents(@Query() paginationDto: PaginationDto) {
+    return this.eventsService.getAllEvents(paginationDto);
   }
 
   @ApiNotFoundResponse({ description: 'Event not found' })
