@@ -67,7 +67,7 @@ export class EventsService {
 
   async getAllEvents(paginationDto: PaginationDto) {
     const { skip, limit } = paginationDto;
-    const [data, total] = await Promise.all([
+    const [data, totalItems] = await Promise.all([
       this.prismaService.event.findMany({
         skip,
         take: limit,
@@ -83,10 +83,11 @@ export class EventsService {
       }),
       this.prismaService.event.count(),
     ]);
+    const totalPages = Math.ceil(totalItems / limit);
     const events = data.map((event) => new EventDto(event));
     return new PaginatedResource<EventDto>(
       events,
-      total,
+      totalPages,
       paginationDto.page,
       paginationDto.limit,
     );
