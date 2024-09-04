@@ -3,6 +3,7 @@ import { EventType } from '@prisma/client';
 import {
   ArrayNotEmpty,
   IsArray,
+  IsDateString,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -20,6 +21,16 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   location: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'The start time of the event' })
+  startDate: Date;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'The end time of the event' })
+  endDate: Date;
 
   @ApiProperty({ description: 'Type of the event', enum: EventType })
   @IsEnum(EventType)

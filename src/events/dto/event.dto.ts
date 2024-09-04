@@ -19,6 +19,12 @@ export class EventDto {
   @ApiProperty({ description: 'The organiser of the event', type: SafeUser })
   organiser: SafeUser;
 
+  @ApiProperty({ description: 'Start date of the Event' })
+  startDate: Date;
+
+  @ApiProperty({ description: 'End date of the Event' })
+  endDate: Date;
+
   @ApiProperty({
     description: 'The lectures associated with the event',
     type: [LectureDto],
@@ -36,6 +42,8 @@ export class EventDto {
       name: init.name,
       location: init.location,
       eventType: init.eventType,
+      startDate: init.startDate,
+      endDate: init.endDate,
       organiser: new SafeUser(init.organiser),
       lectures: init.lectures?.map((lecture) => new LectureDto(lecture)) ?? [],
       image: init.image,

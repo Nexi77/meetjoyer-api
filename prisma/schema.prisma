@@ -35,6 +35,8 @@ model Event {
 
   name        String
   location    String
+  startDate   DateTime
+  endDate     DateTime
   organiserId Int
   organiser   User      @relation("OrganisedEvents", fields: [organiserId], references: [id])
   lectures    Lecture[] @relation("EventLectures")

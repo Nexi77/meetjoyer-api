@@ -7,15 +7,18 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventDto } from './dto/event.dto';
-import { PaginationDto } from 'src/common/pagination/dto/pagination.dto';
 import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
+import { GetEventsDto } from './dto/get-events-dto';
+import { EventType } from './enums/event-type.enum';
+import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
 
 @Injectable()
 export class EventsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createEvent(createEventDto: CreateEventDto, organiserId: number) {
-    const { name, location, eventType, lectureIds } = createEventDto;
+    const { name, location, eventType, lectureIds, startDate, endDate } =
+      createEventDto;
     const organiser = await this.prismaService.user.findUnique({
       where: { id: organiserId },
     });
@@ -44,6 +47,8 @@ export class EventsService {
     const event = await this.prismaService.event.create({
       data: {
         name,
+        startDate,
+        endDate,
         location,
         organiserId,
         eventType,
@@ -65,12 +70,24 @@ export class EventsService {
     return new EventDto(event);
   }
 
-  async getAllEvents(paginationDto: PaginationDto) {
-    const { skip, limit } = paginationDto;
+  async getAllEvents(getEventsDto: GetEventsDto, userId: number) {
+    const { skip, limit, page, type, ...filters } =
+      getParsedPaginationAndRest<GetEventsDto>(getEventsDto);
+    const where: Record<string, any> = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        where[key] = {
+          contains: value,
+          mode: 'insensitive',
+        };
+      }
+    });
+    if (type) this.filterEventsBasedOnType(type, where, userId);
     const [data, totalItems] = await Promise.all([
       this.prismaService.event.findMany({
         skip,
         take: limit,
+        where,
         include: {
           organiser: true,
           lectures: {
@@ -85,12 +102,7 @@ export class EventsService {
     ]);
     const totalPages = Math.ceil(totalItems / limit);
     const events = data.map((event) => new EventDto(event));
-    return new PaginatedResource<EventDto>(
-      events,
-      totalPages,
-      paginationDto.page,
-      paginationDto.limit,
-    );
+    return new PaginatedResource<EventDto>(events, totalPages, page, limit);
   }
 
   async getEventById(eventId: number) {
@@ -183,5 +195,37 @@ export class EventsService {
       },
     });
     return new EventDto(deletedEvent);
+  }
+
+  private filterEventsBasedOnType(
+    type: EventType,
+    whereClauseObject: Record<string, any>,
+    userId: number,
+  ) {
+    switch (type) {
+      case EventType.ONGOING:
+        whereClauseObject.startDate = {
+          lte: new Date(), // Less than or equal to the current date for ongoing events
+        };
+        whereClauseObject.endDate = {
+          gte: new Date(), // Greater than or equal to the current date to ensure it's still ongoing
+        };
+        break;
+      case EventType.UPCOMING:
+        whereClauseObject.startDate = {
+          gt: new Date(),
+        };
+        break;
+      case EventType.MINE:
+        whereClauseObject.lectures = {
+          some: {
+            participants: {
+              some: {
+                id: userId, // User is a participant in the event's lectures
+              },
+            },
+          },
+        };
+    }
   }
 }
