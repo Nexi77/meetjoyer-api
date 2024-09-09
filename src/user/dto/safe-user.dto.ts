@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 export class SafeUser {
@@ -15,11 +15,15 @@ export class SafeUser {
   })
   roles: Role[];
 
+  @ApiPropertyOptional({ description: 'URL for user image' })
+  image?: string | null;
+
   constructor(partial: Partial<SafeUser>) {
     Object.assign(this, {
       id: partial.id,
       email: partial.email,
       roles: partial.roles,
+      image: partial.image,
     });
   }
 }

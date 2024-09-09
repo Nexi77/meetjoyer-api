@@ -25,6 +25,12 @@ export class EventDto {
   @ApiProperty({ description: 'End date of the Event' })
   endDate: Date;
 
+  @ApiProperty({ description: 'Description of the event' })
+  description: string;
+
+  @ApiProperty({ description: 'How mnany users will take part in the event' })
+  participantsNumber: number;
+
   @ApiProperty({
     description: 'The lectures associated with the event',
     type: [LectureDto],
@@ -36,7 +42,7 @@ export class EventDto {
   })
   image: string | null;
 
-  constructor(init: EventDto) {
+  constructor(init: Partial<EventDto>) {
     Object.assign(this, {
       id: init.id,
       name: init.name,
@@ -44,9 +50,18 @@ export class EventDto {
       eventType: init.eventType,
       startDate: init.startDate,
       endDate: init.endDate,
-      organiser: new SafeUser(init.organiser),
+      organiser: new SafeUser(init.organiser as SafeUser),
       lectures: init.lectures?.map((lecture) => new LectureDto(lecture)) ?? [],
+      participantsNumber:
+        init.lectures?.reduce((acc, lecture) => {
+          // If `participants` is undefined, treat it as an empty array
+          const participantCount = lecture.participants
+            ? lecture.participants?.length
+            : 0;
+          return acc + participantCount;
+        }, 0) || 0,
       image: init.image,
+      description: init.description,
     });
   }
 }

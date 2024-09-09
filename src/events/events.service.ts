@@ -17,8 +17,15 @@ export class EventsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createEvent(createEventDto: CreateEventDto, organiserId: number) {
-    const { name, location, eventType, lectureIds, startDate, endDate } =
-      createEventDto;
+    const {
+      name,
+      location,
+      eventType,
+      lectureIds,
+      startDate,
+      endDate,
+      description,
+    } = createEventDto;
     const organiser = await this.prismaService.user.findUnique({
       where: { id: organiserId },
     });
@@ -51,6 +58,7 @@ export class EventsService {
         endDate,
         location,
         organiserId,
+        description,
         eventType,
         lectures: lectureIds?.length
           ? { connect: lectureIds.map((id) => ({ id })) }

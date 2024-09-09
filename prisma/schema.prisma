@@ -19,6 +19,7 @@ model User {
   hash     String
   hashedRt String?
   roles    Role[]  @default([USER])
+  image    String?
 
   organisedEvents   Event[]   @relation("OrganisedEvents")
   speakingLectures  Lecture[] @relation("SpeakerLectures")
@@ -42,6 +43,7 @@ model Event {
   lectures    Lecture[] @relation("EventLectures")
   eventType   EventType
   image       String?
+  description String
 
   @@map("events")
 }

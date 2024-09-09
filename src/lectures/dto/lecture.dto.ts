@@ -36,6 +36,7 @@ export class LectureDto {
       title: partial.title,
       startTime: partial.startTime,
       endTime: partial.endTime,
+      description: partial.description,
       speaker: partial.speaker ? new SafeUser(partial.speaker) : undefined,
       eventId: partial.eventId,
       participants:

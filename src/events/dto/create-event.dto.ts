@@ -36,6 +36,9 @@ export class CreateEventDto {
   @IsEnum(EventType)
   eventType: EventType;
 
+  @ApiProperty({ description: 'Text description of the event' })
+  description: string;
+
   @ApiPropertyOptional({
     description: 'List of lecture IDs associated with the event',
     type: [Number],
