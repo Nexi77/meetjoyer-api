@@ -9,8 +9,8 @@ import {
   HttpCode,
   Param,
   ParseIntPipe,
-  Patch,
   Query,
+  Put,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -82,7 +82,7 @@ export class EventsController {
   @ApiNotFoundResponse({ description: 'Event not found' })
   @ApiOkResponse({ description: 'Event updated successfully', type: EventDto })
   @Roles(UserRole.ADMIN, UserRole.ORGANISER)
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   async updateEvent(
     @Param('id', ParseIntPipe) id: number,

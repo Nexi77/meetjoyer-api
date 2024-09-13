@@ -10,12 +10,18 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { IsGeoLocation } from 'src/common/decorators/is-geo-location.decorator';
 
 export class CreateEventDto {
   @ApiProperty({ description: 'Name of the event' })
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @ApiProperty({ description: 'Geolocation of the event' })
+  @IsNotEmpty()
+  @IsGeoLocation()
+  geolocation: [number, number];
 
   @ApiProperty({ description: 'Location of the event' })
   @IsString()

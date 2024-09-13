@@ -11,6 +11,7 @@ import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.
 import { GetEventsDto } from './dto/get-events-dto';
 import { EventType } from './enums/event-type.enum';
 import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
+import { EventWithGeoData } from './dto/event-with-geo-data.dto';
 
 @Injectable()
 export class EventsService {
@@ -22,6 +23,7 @@ export class EventsService {
       location,
       eventType,
       lectureIds,
+      geolocation,
       startDate,
       endDate,
       description,
@@ -56,6 +58,8 @@ export class EventsService {
         name,
         startDate,
         endDate,
+        lat: geolocation[0],
+        lng: geolocation[1],
         location,
         organiserId,
         description,
@@ -109,7 +113,10 @@ export class EventsService {
       this.prismaService.event.count(),
     ]);
     const totalPages = Math.ceil(totalItems / limit);
-    const events = data.map((event) => new EventDto(event));
+    const events = data.map((event) => {
+      const geolocEvent = new EventWithGeoData(event);
+      return new EventDto(geolocEvent);
+    });
     return new PaginatedResource<EventDto>(events, totalPages, page, limit);
   }
 
@@ -129,7 +136,8 @@ export class EventsService {
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
-    return new EventDto(event);
+    const eventWithGeoLoc = new EventWithGeoData(event);
+    return new EventDto(eventWithGeoLoc);
   }
 
   async updateEvent(eventId: number, updateEventDto: UpdateEventDto) {
@@ -158,6 +166,8 @@ export class EventsService {
       data: {
         name: updateEventDto.name,
         location: updateEventDto.location,
+        lat: updateEventDto.geolocation[0],
+        lng: updateEventDto.geolocation[1],
         eventType: updateEventDto.eventType,
         // Connect provided lectures and disconnect the rest
         lectures: {
@@ -179,8 +189,8 @@ export class EventsService {
         },
       },
     });
-
-    return new EventDto(event);
+    const eventWithGeoLoc = new EventWithGeoData(event);
+    return new EventDto(eventWithGeoLoc);
   }
 
   async deleteEventById(eventId: number) {

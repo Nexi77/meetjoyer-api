@@ -2,18 +2,20 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LectureDto } from 'src/lectures/dto/lecture.dto';
 import { SafeUser } from 'src/user/dto/safe-user.dto';
 import { EventType } from '@prisma/client';
-import { EventLocationDto } from './event-location.dto';
-import { EventWithGeoData } from './event-with-geo-data.dto';
+import { Decimal } from '@prisma/client/runtime/library';
 
-export class EventDto {
+export class EventWithGeoData {
   @ApiProperty({ description: 'The ID of the event' })
   id: number;
 
   @ApiProperty({ description: 'The name of the event' })
   name: string;
 
-  @ApiProperty({ description: 'The location of the event' })
-  geolocation: EventLocationDto;
+  @ApiProperty({ description: 'lat geocoordinate' })
+  lat: Decimal;
+
+  @ApiProperty({ description: 'lng geocoordinate' })
+  lng: Decimal;
 
   @ApiProperty({ description: 'The location of the event' })
   location: string;
@@ -52,7 +54,8 @@ export class EventDto {
       id: init.id,
       name: init.name,
       location: init.location,
-      geolocation: { lat: init.lat, lng: init.lng },
+      lat: init.lat?.toNumber(),
+      lng: init.lng?.toNumber(),
       eventType: init.eventType,
       startDate: init.startDate,
       endDate: init.endDate,
