@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './user/user.module';
 import { EventsModule } from './events/events.module';
 import { LectureModule } from './lectures/lecture.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { LectureModule } from './lectures/lecture.module';
     ConfigModule.forRoot({ isGlobal: true }),
     EventsModule,
     LectureModule,
+    UploadModule,
   ],
   providers: [
     {
