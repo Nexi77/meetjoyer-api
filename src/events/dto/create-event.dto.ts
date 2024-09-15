@@ -45,6 +45,9 @@ export class CreateEventDto {
   @ApiProperty({ description: 'Text description of the event' })
   description: string;
 
+  @ApiPropertyOptional({ description: 'Image url of the event' })
+  image: string;
+
   @ApiPropertyOptional({
     description: 'List of lecture IDs associated with the event',
     type: [Number],

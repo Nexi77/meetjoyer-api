@@ -52,6 +52,7 @@ export class EventDto {
       id: init.id,
       name: init.name,
       location: init.location,
+      image: init.image,
       geolocation: { lat: init.lat, lng: init.lng },
       eventType: init.eventType,
       startDate: init.startDate,
@@ -66,7 +67,6 @@ export class EventDto {
             : 0;
           return acc + participantCount;
         }, 0) || 0,
-      image: init.image,
       description: init.description,
     });
   }
