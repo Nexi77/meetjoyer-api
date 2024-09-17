@@ -1,10 +1,4 @@
-import {
-  IsEmail,
-  IsOptional,
-  IsStrongPassword,
-  Validate,
-} from 'class-validator';
-import { CustomMatchPasswords } from 'src/common/constraints/match_password.constraint';
+import { IsEmail, IsOptional, IsStrongPassword } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -22,6 +16,5 @@ export class UpdateUserDto {
   password?: string;
 
   @IsOptional()
-  @Validate(CustomMatchPasswords, ['password'])
-  passwordConfirm?: string;
+  image: string;
 }

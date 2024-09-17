@@ -8,20 +8,38 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ExceptionMessages } from 'src/common/validation/messages.validation.enum';
 import { SafeUser } from './dto/safe-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly authService: AuthService,
+  ) {}
 
   async updateUser(id: number, updateUserDto: UpdateUserDto) {
     try {
+      const updateUserFields: {
+        email?: string;
+        hash?: string;
+        image?: string;
+      } = {
+        email: updateUserDto.email,
+        image: updateUserDto.image,
+      };
+      if (updateUserDto.password) {
+        updateUserFields.hash = await this.authService.hashData(
+          updateUserDto.password,
+        );
+      }
       const updatedUser = await this.prisma.user.update({
         where: { id },
-        data: updateUserDto,
+        data: updateUserFields,
       });
       const safeUser = new SafeUser(updatedUser);
       return safeUser;
     } catch (ex) {
+      console.log(ex);
       throw new ConflictException(ExceptionMessages.EmailExists);
     }
   }

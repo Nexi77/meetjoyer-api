@@ -152,12 +152,12 @@ export class EventsService {
     if (!existingEvent) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
-    if (updateEventDto.lectures) {
+    if (updateEventDto.lectureIds) {
       const existingLectures = await this.prismaService.lecture.findMany({
-        where: { id: { in: updateEventDto.lectures } },
+        where: { id: { in: updateEventDto.lectureIds } },
       });
       // Check if all provided lecture IDs exist
-      if (existingLectures.length !== updateEventDto.lectures.length) {
+      if (existingLectures.length !== updateEventDto.lectureIds.length) {
         throw new NotFoundException(
           'One or more provided lecture IDs do not exist',
         );
@@ -171,13 +171,16 @@ export class EventsService {
         lat: updateEventDto.geolocation[0],
         lng: updateEventDto.geolocation[1],
         eventType: updateEventDto.eventType,
+        image: updateEventDto.image,
         // Connect provided lectures and disconnect the rest
         lectures: {
-          connect: updateEventDto.lectures?.map((lectureId) => ({
+          connect: updateEventDto.lectureIds?.map((lectureId) => ({
             id: lectureId,
           })),
           disconnect: existingEvent.lectures
-            .filter((lecture) => !updateEventDto.lectures?.includes(lecture.id))
+            .filter(
+              (lecture) => !updateEventDto.lectureIds?.includes(lecture.id),
+            )
             .map((lecture) => ({ id: lecture.id })),
         },
       },
