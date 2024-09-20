@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Query,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -25,6 +26,8 @@ import { Roles as RolesDec } from 'src/common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { SafeUser } from './dto/safe-user.dto';
 import { SameUserOrAdmin } from 'src/common/guards/same_user_or_admin.guard';
+import { GetUsersDto } from './dto/get-users-dto';
+import { ApiPaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 
 @ApiTags('Users')
 @Controller('users')
@@ -48,10 +51,10 @@ export class UserController {
 
   @Get()
   @RolesDec(UserRole.ADMIN)
-  @ApiOkResponse({ description: 'List of all users.', type: [SafeUser] })
+  @ApiPaginatedResponse(SafeUser)
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
-  async getAllUsers() {
-    return await this.userService.getAllUsers();
+  async getAllUsers(@Query() getUsersDto: GetUsersDto) {
+    return await this.userService.getAllUsers(getUsersDto);
   }
 
   @UseGuards(SameUserOrAdmin)

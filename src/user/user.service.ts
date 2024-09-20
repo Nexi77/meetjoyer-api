@@ -9,6 +9,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ExceptionMessages } from 'src/common/validation/messages.validation.enum';
 import { SafeUser } from './dto/safe-user.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { GetUsersDto } from './dto/get-users-dto';
+import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
+import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
 
 @Injectable()
 export class UserService {
@@ -56,9 +59,34 @@ export class UserService {
     }
   }
 
-  async getAllUsers() {
-    const users = await this.prisma.user.findMany();
-    return users.map((user) => new SafeUser(user));
+  async getAllUsers(getUsersDto: GetUsersDto) {
+    const where: Record<string, any> = {};
+
+    const { skip, limit, page, role, ...filters } =
+      getParsedPaginationAndRest<GetUsersDto>(getUsersDto);
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        where[key] = {
+          contains: value,
+          mode: 'insensitive',
+        };
+      }
+    });
+    if (role)
+      where.roles = {
+        has: role,
+      };
+    const [data, totalItems] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        where,
+      }),
+      this.prisma.user.count(),
+    ]);
+    const totalPages = Math.ceil(totalItems / limit);
+    const users = data.map((user) => new SafeUser(user));
+    return new PaginatedResource<SafeUser>(users, totalPages, page, limit);
   }
 
   async getSingleUser(id: number) {
