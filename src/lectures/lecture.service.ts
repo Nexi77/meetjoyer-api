@@ -3,6 +3,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
+import { GetLecturesDto } from './dto/get-lectures.dto';
+import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
+import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
 
 @Injectable()
 export class LectureService {
@@ -59,7 +62,36 @@ export class LectureService {
     return new LectureDto(lecture);
   }
 
-  async getAllLectures() {
+  async getAllLectures(getLecturesDto: GetLecturesDto) {
+    const { skip, limit, page, ...filters } =
+      getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
+    const where: Record<string, any> = {};
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        where[key] = {
+          contains: value,
+          mode: 'insensitive',
+        };
+      }
+    });
+    const [data, totalItems] = await Promise.all([
+      await this.prismaService.lecture.findMany({
+        include: {
+          speaker: true,
+          participants: true,
+        },
+        where,
+        skip,
+        take: limit,
+      }),
+      this.prismaService.lecture.count(),
+    ]);
+    const totalPages = Math.ceil(totalItems / limit);
+    const lectures = data.map((lecture) => new LectureDto(lecture));
+    return new PaginatedResource<LectureDto>(lectures, totalPages, page, limit);
+  }
+
+  async getAllLecturesWithNoPagination() {
     const lectures = await this.prismaService.lecture.findMany({
       include: {
         speaker: true,

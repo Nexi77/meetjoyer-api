@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,6 +29,8 @@ import { Roles } from 'src/common/decorators';
 import { Role } from '@prisma/client';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
+import { GetLecturesDto } from './dto/get-lectures.dto';
+import { ApiPaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 
 @ApiTags('Lectures')
 @UseGuards(RolesGuard)
@@ -52,9 +55,20 @@ export class LectureController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
-  @ApiOkResponse({ description: 'List of all lectures', type: [LectureDto] })
-  async getAllLectures() {
-    return this.lectureService.getAllLectures();
+  @ApiPaginatedResponse(LectureDto)
+  async getAllLectures(@Query() getLecturesDto: GetLecturesDto) {
+    return this.lectureService.getAllLectures(getLecturesDto);
+  }
+
+  @Get('no-pagination')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'List of all lectures without pagination',
+    type: [LectureDto],
+  })
+  async getAllLecturesWithNoPagination() {
+    return this.lectureService.getAllLecturesWithNoPagination();
   }
 
   @Get(':id')

@@ -61,7 +61,17 @@ export class UserService {
           `User cannot be deleted because they are a speaker for a lecture.`,
         );
       }
-      console.log('VBV');
+
+      const userWithEvents = await this.prisma.event.findFirst({
+        where: { organiserId: id },
+      });
+
+      if (userWithEvents) {
+        throw new Error(
+          `User cannot be deleted because they are an organizer for an event.`,
+        );
+      }
+
       const deletedUser = await this.prisma.user.delete({
         where: { id },
       });
