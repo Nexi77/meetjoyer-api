@@ -1,4 +1,11 @@
-import { IsEmail, IsOptional, IsStrongPassword } from 'class-validator';
+import { Role } from '@prisma/client';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsStrongPassword,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -14,6 +21,11 @@ export class UpdateUserDto {
     minUppercase: 1,
   })
   password?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Role, { each: true })
+  roles: Role[];
 
   @IsOptional()
   image: string;

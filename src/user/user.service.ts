@@ -12,6 +12,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { GetUsersDto } from './dto/get-users-dto';
 import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
 import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -26,6 +27,7 @@ export class UserService {
         email?: string;
         hash?: string;
         image?: string;
+        roles?: Role[];
       } = {
         email: updateUserDto.email,
         image: updateUserDto.image,
@@ -35,6 +37,9 @@ export class UserService {
           updateUserDto.password,
         );
       }
+      if (updateUserDto.roles) {
+        updateUserFields.roles = updateUserDto.roles;
+      }
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: updateUserFields,
@@ -42,19 +47,30 @@ export class UserService {
       const safeUser = new SafeUser(updatedUser);
       return safeUser;
     } catch (ex) {
-      console.log(ex);
       throw new ConflictException(ExceptionMessages.EmailExists);
     }
   }
 
   async deleteUser(id: number) {
     try {
+      const userWithLectures = await this.prisma.lecture.findFirst({
+        where: { speakerId: id },
+      });
+      if (userWithLectures) {
+        throw new Error(
+          `User cannot be deleted because they are a speaker for a lecture.`,
+        );
+      }
+      console.log('VBV');
       const deletedUser = await this.prisma.user.delete({
         where: { id },
       });
       const safeUser = new SafeUser(deletedUser);
       return safeUser;
     } catch (ex) {
+      if (ex instanceof Error) {
+        throw new NotFoundException(ex.message);
+      }
       throw new NotFoundException(`User with ID: ${id} was not found`);
     }
   }

@@ -15,6 +15,11 @@ export class SafeUser {
   })
   roles: Role[];
 
+  @ApiProperty({
+    description: 'When user was created',
+  })
+  createdAt: Date;
+
   @ApiPropertyOptional({ description: 'URL for user image' })
   image?: string | null;
 
@@ -22,6 +27,7 @@ export class SafeUser {
     Object.assign(this, {
       id: partial.id,
       email: partial.email,
+      createdAt: partial.createdAt,
       roles: partial.roles,
       image: partial.image,
     });
