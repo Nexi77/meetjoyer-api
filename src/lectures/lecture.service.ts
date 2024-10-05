@@ -62,8 +62,8 @@ export class LectureService {
     return new LectureDto(lecture);
   }
 
-  async getAllLectures(getLecturesDto: GetLecturesDto) {
-    const { skip, limit, page, ...filters } =
+  async getAllLectures(getLecturesDto: GetLecturesDto, userId: number) {
+    const { skip, limit, page, type, ...filters } =
       getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
     const where: Record<string, any> = {};
     Object.entries(filters).forEach(([key, value]) => {
@@ -74,6 +74,13 @@ export class LectureService {
         };
       }
     });
+    if (type === 'mine') {
+      where.participants = {
+        some: {
+          id: userId,
+        },
+      };
+    }
     const [data, totalItems] = await Promise.all([
       await this.prismaService.lecture.findMany({
         include: {

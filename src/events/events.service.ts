@@ -122,6 +122,19 @@ export class EventsService {
     return new PaginatedResource<EventDto>(events, totalPages, page, limit);
   }
 
+  async getAllEventsWithNoPagination() {
+    const data = await this.prismaService.event.findMany({
+      include: {
+        organiser: true,
+      },
+    });
+    const events = data.map((event) => {
+      const geolocEvent = new EventWithGeoData(event);
+      return new EventDto(geolocEvent);
+    });
+    return events.map((event) => new EventDto(event));
+  }
+
   async getEventById(eventId: number) {
     const event = await this.prismaService.event.findUnique({
       where: { id: eventId },

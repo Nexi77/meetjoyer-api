@@ -38,7 +38,7 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.ORGANISER)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiBadRequestResponse({ description: 'Bad Request' })
@@ -63,6 +63,13 @@ export class EventsController {
     @GetCurrentUserId() userId: number,
   ) {
     return this.eventsService.getAllEvents(getEventsDto, userId);
+  }
+
+  @Get('no-pagination')
+  @ApiBearerAuth()
+  @ApiPaginatedResponse(EventDto)
+  async getAllEventsWithNoPagination() {
+    return this.eventsService.getAllEventsWithNoPagination();
   }
 
   @ApiNotFoundResponse({ description: 'Event not found' })

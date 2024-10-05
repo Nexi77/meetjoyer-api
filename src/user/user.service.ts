@@ -115,6 +115,11 @@ export class UserService {
     return new PaginatedResource<SafeUser>(users, totalPages, page, limit);
   }
 
+  async getAllUsersWithNoPagination() {
+    const users = await this.prisma.user.findMany();
+    return users.map((users) => new SafeUser(users));
+  }
+
   async getSingleUser(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },

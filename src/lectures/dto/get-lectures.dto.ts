@@ -5,4 +5,8 @@ export class GetLecturesDto extends PaginationDto {
   @IsOptional()
   @IsString()
   title?: string;
+
+  @IsOptional()
+  @IsString()
+  type: string;
 }

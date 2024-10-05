@@ -7,8 +7,8 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
-  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -25,7 +25,7 @@ import {
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { LectureService } from './lecture.service';
 import { LectureDto } from './dto/lecture.dto';
-import { Roles } from 'src/common/decorators';
+import { GetCurrentUserId, Roles } from 'src/common/decorators';
 import { Role } from '@prisma/client';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
@@ -40,7 +40,7 @@ export class LectureController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles(Role.ADMIN, Role.ORGANISER)
+  @Roles(Role.ADMIN)
   @ApiCreatedResponse({
     description: 'The lecture has been successfully created.',
     type: LectureDto,
@@ -56,8 +56,11 @@ export class LectureController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiPaginatedResponse(LectureDto)
-  async getAllLectures(@Query() getLecturesDto: GetLecturesDto) {
-    return this.lectureService.getAllLectures(getLecturesDto);
+  async getAllLectures(
+    @Query() getLecturesDto: GetLecturesDto,
+    @GetCurrentUserId() userId: number,
+  ) {
+    return this.lectureService.getAllLectures(getLecturesDto, userId);
   }
 
   @Get('no-pagination')
@@ -81,7 +84,7 @@ export class LectureController {
     return await this.lectureService.getLectureById(lectureId);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN, Role.ORGANISER)
   @ApiOkResponse({

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -55,6 +57,17 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: 'Unauthorized.' })
   async getAllUsers(@Query() getUsersDto: GetUsersDto) {
     return await this.userService.getAllUsers(getUsersDto);
+  }
+
+  @Get('no-pagination')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'List of all lectures without pagination',
+    type: [SafeUser],
+  })
+  async getAllLecturesWithNoPagination() {
+    return this.userService.getAllUsersWithNoPagination();
   }
 
   @UseGuards(SameUserOrAdmin)
