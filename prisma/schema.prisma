@@ -50,15 +50,6 @@ model Event {
   @@map("events")
 }
 
-model Chat {
-  id        Int       @id @default(autoincrement())
-  lectureId Int       @unique
-  lecture   Lecture   @relation(fields: [lectureId], references: [id])
-  messages  Message[]
-
-  @@map("chats")
-}
-
 model Lecture {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
@@ -74,7 +65,6 @@ model Lecture {
   speakerId    Int
   speaker      User   @relation("SpeakerLectures", fields: [speakerId], references: [id])
   participants User[] @relation("ParticipantLectures")
-  chat         Chat?
 
   @@map("lectures")
 }
@@ -84,8 +74,6 @@ model Message {
   content   String
   senderId  Int
   sender    User     @relation(fields: [senderId], references: [id])
-  chatId    Int
-  chat      Chat     @relation(fields: [chatId], references: [id])
   createdAt DateTime @default(now())
 
   @@map("messages")
