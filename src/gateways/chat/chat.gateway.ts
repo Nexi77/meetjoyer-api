@@ -50,6 +50,26 @@ export class LectureChatGateway {
     });
   }
 
+  @SubscribeMessage('fetchMessages')
+  async handleFetchMessages(
+    @MessageBody()
+    {
+      lectureId,
+      page,
+      limit,
+    }: { lectureId: string; page: number; limit: number },
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
+    const messages = await this.chatMessageModel
+      .find({ lectureId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .skip((page - 1) * limit) // Pagination logic
+      .limit(limit);
+
+    // Emit the fetched messages back to the client
+    client.emit('loadMessages', messages);
+  }
+
   @SubscribeMessage('userTyping')
   handleUserTyping(
     @MessageBody() { lectureId, userId }: { lectureId: string; userId: string },

@@ -1,10 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsDateString,
   IsArray,
   IsNumber,
 } from 'class-validator';
@@ -23,22 +22,11 @@ export class CreateLectureDto {
   })
   description?: string;
 
-  @IsDateString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The start time of the lecture' })
-  startTime: Date;
-
-  @IsDateString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The end time of the lecture' })
-  endTime: Date;
-
-  @IsOptional()
   @IsInt()
-  @ApiPropertyOptional({
+  @ApiProperty({
     description: 'The ID of the event this lecture belongs to',
   })
-  eventId?: number;
+  eventId: number;
 
   @IsInt()
   @IsNotEmpty()

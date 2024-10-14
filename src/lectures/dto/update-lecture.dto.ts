@@ -1,7 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
-  IsDateString,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -23,18 +22,6 @@ export class UpdateLectureDto {
     required: false,
   })
   description?: string;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsDateString()
-  @ApiPropertyOptional({ description: 'The start time of the lecture' })
-  startTime?: Date;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsDateString()
-  @ApiPropertyOptional({ description: 'The end time of the lecture' })
-  endTime?: Date;
 
   @IsOptional()
   @IsInt()

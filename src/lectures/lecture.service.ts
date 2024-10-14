@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateLectureDto } from './dto/create-lecture.dto';
 import { LectureDto } from './dto/lecture.dto';
@@ -6,6 +10,7 @@ import { UpdateLectureDto } from './dto/update-lecture.dto';
 import { GetLecturesDto } from './dto/get-lectures.dto';
 import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
 import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
+import { SignInOutDto } from './dto/sign-in-out.dto';
 
 @Injectable()
 export class LectureService {
@@ -45,11 +50,7 @@ export class LectureService {
       data: {
         title: createLectureDto.title,
         description: createLectureDto.description,
-        startTime: createLectureDto.startTime,
-        endTime: createLectureDto.endTime,
-        event: createLectureDto.eventId
-          ? { connect: { id: createLectureDto.eventId } }
-          : undefined,
+        event: { connect: { id: createLectureDto.eventId } },
         speaker: {
           connect: { id: createLectureDto.speakerId },
         },
@@ -171,8 +172,6 @@ export class LectureService {
       data: {
         title: updateLectureDto.title,
         description: updateLectureDto.description,
-        startTime: updateLectureDto.startTime,
-        endTime: updateLectureDto.endTime,
         eventId: updateLectureDto.eventId,
         speakerId: updateLectureDto.speakerId,
         participants: {
@@ -196,5 +195,74 @@ export class LectureService {
       include: { participants: true, speaker: true },
     });
     return new LectureDto(deletedLecture);
+  }
+
+  async signInToLecture(userId: number, signInOutDto: SignInOutDto) {
+    const { lectureId } = signInOutDto;
+
+    const lecture = await this.prismaService.lecture.findUnique({
+      where: { id: lectureId },
+      include: { participants: true },
+    });
+
+    if (!lecture) {
+      throw new NotFoundException(`Lecture with ID ${lectureId} not found`);
+    }
+
+    // Check if the user is already a participant
+    const isAlreadyParticipant = lecture.participants.some(
+      (participant) => participant.id === userId,
+    );
+
+    if (isAlreadyParticipant) {
+      throw new BadRequestException(
+        `User is already a participant in this lecture`,
+      );
+    }
+
+    const updatedLecture = await this.prismaService.lecture.update({
+      where: { id: lectureId },
+      data: {
+        participants: {
+          connect: { id: userId },
+        },
+      },
+    });
+    return new LectureDto(updatedLecture);
+  }
+
+  async signOutFromLecture(userId: number, signInOutDto: SignInOutDto) {
+    const { lectureId } = signInOutDto;
+
+    const lecture = await this.prismaService.lecture.findUnique({
+      where: { id: lectureId },
+      include: { participants: true },
+    });
+
+    if (!lecture) {
+      throw new NotFoundException(`Lecture with ID ${lectureId} not found`);
+    }
+
+    // Check if the user is a participant
+    const isParticipant = lecture.participants.some(
+      (participant) => participant.id === userId,
+    );
+
+    if (!isParticipant) {
+      throw new BadRequestException(
+        `User is not a participant in this lecture`,
+      );
+    }
+
+    const updatedLecture = await this.prismaService.lecture.update({
+      where: { id: lectureId },
+      data: {
+        participants: {
+          disconnect: { id: userId },
+        },
+      },
+    });
+
+    return new LectureDto(updatedLecture);
   }
 }

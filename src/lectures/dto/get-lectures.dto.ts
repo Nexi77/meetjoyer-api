@@ -8,5 +8,5 @@ export class GetLecturesDto extends PaginationDto {
 
   @IsOptional()
   @IsString()
-  type: string;
+  type?: string;
 }

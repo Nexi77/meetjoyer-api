@@ -159,16 +159,20 @@ export class EventsService {
     const existingEvent = await this.prismaService.event.findUnique({
       where: { id: eventId },
       include: {
-        lectures: true,
+        lectures: true, // Fetch current associated lectures
       },
     });
+
     if (!existingEvent) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
+
+    // Check if provided lecture IDs exist if provided
     if (updateEventDto.lectureIds) {
       const existingLectures = await this.prismaService.lecture.findMany({
         where: { id: { in: updateEventDto.lectureIds } },
       });
+
       // Check if all provided lecture IDs exist
       if (existingLectures.length !== updateEventDto.lectureIds.length) {
         throw new NotFoundException(
@@ -176,6 +180,24 @@ export class EventsService {
         );
       }
     }
+
+    // Identify lectures to be removed (i.e., those that will be disconnected)
+    const lecturesToRemove = existingEvent.lectures.filter(
+      (lecture) => !updateEventDto.lectureIds?.includes(lecture.id),
+    );
+
+    // First, delete the lectures that will be removed
+    if (lecturesToRemove.length > 0) {
+      await Promise.all(
+        lecturesToRemove.map((lecture) =>
+          this.prismaService.lecture.delete({
+            where: { id: lecture.id },
+          }),
+        ),
+      );
+    }
+
+    // Now update the event
     const event = await this.prismaService.event.update({
       where: { id: eventId },
       data: {
@@ -185,16 +207,11 @@ export class EventsService {
         lng: updateEventDto.geolocation[1],
         eventType: updateEventDto.eventType,
         image: updateEventDto.image,
-        // Connect provided lectures and disconnect the rest
+        // Connect provided lectures
         lectures: {
           connect: updateEventDto.lectureIds?.map((lectureId) => ({
             id: lectureId,
           })),
-          disconnect: existingEvent.lectures
-            .filter(
-              (lecture) => !updateEventDto.lectureIds?.includes(lecture.id),
-            )
-            .map((lecture) => ({ id: lecture.id })),
         },
       },
       include: {
@@ -207,6 +224,7 @@ export class EventsService {
         },
       },
     });
+
     const eventWithGeoLoc = new EventWithGeoData(event);
     return new EventDto(eventWithGeoLoc);
   }

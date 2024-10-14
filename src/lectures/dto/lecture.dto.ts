@@ -11,12 +11,6 @@ export class LectureDto {
   @ApiPropertyOptional({ description: 'The description of the lecture' })
   description?: string | null;
 
-  @ApiProperty({ description: 'The start date of the lecture' })
-  startTime: Date;
-
-  @ApiProperty({ description: 'The end date of the lecture' })
-  endTime: Date;
-
   @ApiProperty({
     description: 'User object representing speaker of this lecture',
   })
@@ -34,8 +28,6 @@ export class LectureDto {
     Object.assign(this, {
       id: partial.id,
       title: partial.title,
-      startTime: partial.startTime,
-      endTime: partial.endTime,
       description: partial.description,
       speaker: partial.speaker ? new SafeUser(partial.speaker) : undefined,
       eventId: partial.eventId,

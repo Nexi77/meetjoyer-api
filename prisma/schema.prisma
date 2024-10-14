@@ -57,11 +57,9 @@ model Lecture {
 
   title       String
   description String?
-  startTime   DateTime
-  endTime     DateTime
 
-  eventId      Int?
-  event        Event? @relation("EventLectures", fields: [eventId], references: [id])
+  eventId      Int
+  event        Event  @relation("EventLectures", fields: [eventId], references: [id], onDelete: Cascade)
   speakerId    Int
   speaker      User   @relation("SpeakerLectures", fields: [speakerId], references: [id])
   participants User[] @relation("ParticipantLectures")

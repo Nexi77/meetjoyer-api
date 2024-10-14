@@ -31,6 +31,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { UpdateLectureDto } from './dto/update-lecture.dto';
 import { GetLecturesDto } from './dto/get-lectures.dto';
 import { ApiPaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
+import { SignInOutDto } from './dto/sign-in-out.dto';
 
 @ApiTags('Lectures')
 @UseGuards(RolesGuard)
@@ -113,5 +114,31 @@ export class LectureController {
   @ApiParam({ name: 'id', description: 'ID of the lecture to delete' })
   async deleteLectureById(@Param('id', ParseIntPipe) lectureId: number) {
     return this.lectureService.deleteLectureById(lectureId);
+  }
+
+  @Post('signin')
+  @ApiOkResponse({
+    description: 'The lecture has been successfully updated.',
+    type: LectureDto,
+  })
+  @ApiBearerAuth()
+  async signIn(
+    @GetCurrentUserId() userId: number,
+    @Body() signInOutDto: SignInOutDto,
+  ) {
+    return this.lectureService.signInToLecture(userId, signInOutDto);
+  }
+
+  @Post('signout')
+  @ApiOkResponse({
+    description: 'The lecture has been successfully updated.',
+    type: LectureDto,
+  })
+  @ApiBearerAuth()
+  async signOut(
+    @GetCurrentUserId() userId: number,
+    @Body() signInOutDto: SignInOutDto,
+  ) {
+    return this.lectureService.signOutFromLecture(userId, signInOutDto);
   }
 }
