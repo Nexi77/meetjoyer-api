@@ -12,6 +12,14 @@ export class GetEventsDto extends PaginationDto {
   location?: string;
 
   @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+
+  @IsOptional()
   @IsEnum(EventType, {
     message: 'type must be either ongoing, upcoming, or mine',
   })

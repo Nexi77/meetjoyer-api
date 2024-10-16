@@ -64,7 +64,7 @@ export class LectureService {
   }
 
   async getAllLectures(getLecturesDto: GetLecturesDto, userId: number) {
-    const { skip, limit, page, type, ...filters } =
+    const { skip, limit, page, type, speakerEmail, sortBy, ...filters } =
       getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
     const where: Record<string, any> = {};
     Object.entries(filters).forEach(([key, value]) => {
@@ -82,13 +82,40 @@ export class LectureService {
         },
       };
     }
+    if (speakerEmail) {
+      where.speaker = {
+        email: {
+          contains: speakerEmail,
+          mode: 'insensitive',
+        },
+      };
+    }
+
+    const orderBy: any = [];
+
+    if (sortBy) {
+      if (sortBy === 'startDate') {
+        orderBy.push({
+          event: {
+            startDate: 'asc',
+          },
+        });
+      } else {
+        orderBy.push({
+          [sortBy]: 'asc',
+        });
+      }
+    }
+
     const [data, totalItems] = await Promise.all([
       await this.prismaService.lecture.findMany({
         include: {
           speaker: true,
           participants: true,
+          event: true,
         },
         where,
+        orderBy,
         skip,
         take: limit,
       }),

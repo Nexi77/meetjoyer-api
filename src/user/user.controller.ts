@@ -66,8 +66,8 @@ export class UserController {
     description: 'List of all lectures without pagination',
     type: [SafeUser],
   })
-  async getAllLecturesWithNoPagination() {
-    return this.userService.getAllUsersWithNoPagination();
+  async getAllLecturesWithNoPagination(@Query() queries: { role?: string }) {
+    return this.userService.getAllUsersWithNoPagination(queries.role);
   }
 
   @UseGuards(SameUserOrAdmin)

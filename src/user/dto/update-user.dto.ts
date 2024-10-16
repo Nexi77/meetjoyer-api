@@ -25,8 +25,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsArray()
   @IsEnum(Role, { each: true })
-  roles: Role[];
+  roles?: Role[];
 
   @IsOptional()
-  image: string;
+  image?: string;
 }

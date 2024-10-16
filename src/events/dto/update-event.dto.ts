@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { EventType } from '@prisma/client';
-import { IsArray, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsString,
+} from 'class-validator';
 import { IsGeoLocation } from 'src/common/decorators/is-geo-location.decorator';
 
 export class UpdateEventDto {
@@ -16,6 +22,16 @@ export class UpdateEventDto {
   @IsNotEmpty()
   @IsGeoLocation()
   geolocation: [number, number];
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'The start time of the event' })
+  startDate: Date;
+
+  @IsDateString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'The end time of the event' })
+  endDate: Date;
 
   @IsString()
   @IsNotEmpty()

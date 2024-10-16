@@ -115,8 +115,14 @@ export class UserService {
     return new PaginatedResource<SafeUser>(users, totalPages, page, limit);
   }
 
-  async getAllUsersWithNoPagination() {
-    const users = await this.prisma.user.findMany();
+  async getAllUsersWithNoPagination(role?: string) {
+    const where: Record<string, any> = {};
+    if (role) {
+      where.roles = {
+        has: role,
+      };
+    }
+    const users = await this.prisma.user.findMany({ where });
     return users.map((users) => new SafeUser(users));
   }
 

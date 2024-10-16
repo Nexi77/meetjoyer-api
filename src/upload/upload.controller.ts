@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Controller,
   FileTypeValidator,
-  MaxFileSizeValidator,
   ParseFilePipe,
   Post,
   UploadedFile,
@@ -35,10 +34,7 @@ export class UploadController {
   async uploadImage(
     @UploadedFile(
       new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 100000 }),
-          new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
+        validators: [new FileTypeValidator({ fileType: 'image/jpeg' })],
       }),
     )
     file: Express.Multer.File,

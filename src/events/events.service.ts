@@ -85,8 +85,9 @@ export class EventsService {
   }
 
   async getAllEvents(getEventsDto: GetEventsDto, userId: number) {
-    const { skip, limit, page, type, ...filters } =
+    const { skip, limit, page, type, startDate, endDate, ...filters } =
       getParsedPaginationAndRest<GetEventsDto>(getEventsDto);
+
     const where: Record<string, any> = {};
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
@@ -97,6 +98,16 @@ export class EventsService {
       }
     });
     if (type) this.filterEventsBasedOnType(type, where, userId);
+    if (startDate) {
+      where.startDate = {
+        gte: new Date(startDate),
+      };
+    }
+    if (endDate) {
+      where.endDate = {
+        lte: new Date(endDate),
+      };
+    }
     const [data, totalItems] = await Promise.all([
       this.prismaService.event.findMany({
         skip,
@@ -203,6 +214,8 @@ export class EventsService {
       data: {
         name: updateEventDto.name,
         location: updateEventDto.location,
+        startDate: updateEventDto.startDate,
+        endDate: updateEventDto.endDate,
         lat: updateEventDto.geolocation[0],
         lng: updateEventDto.geolocation[1],
         eventType: updateEventDto.eventType,
