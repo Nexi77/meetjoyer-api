@@ -11,10 +11,22 @@ import { GetLecturesDto } from './dto/get-lectures.dto';
 import { getParsedPaginationAndRest } from 'src/common/utils/pagination-util';
 import { PaginatedResource } from 'src/common/pagination/dto/paginated_resource.dto';
 import { SignInOutDto } from './dto/sign-in-out.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import {
+  ChatMessage,
+  ChatMessageDocument,
+} from 'src/chat/schemas/chat-message.schema';
+import { Model } from 'mongoose';
+import { OpenAIService } from 'src/openai/openai.service';
 
 @Injectable()
 export class LectureService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    @InjectModel(ChatMessage.name)
+    private chatMessageModel: Model<ChatMessageDocument>,
+    private readonly openAiService: OpenAIService,
+  ) {}
 
   async createLecture(createLectureDto: CreateLectureDto) {
     if (createLectureDto.eventId) {
@@ -63,9 +75,89 @@ export class LectureService {
     return new LectureDto(lecture);
   }
 
+  async generateLectureQuestionsResponse(lectureId: number, speakerId: number) {
+    const lecture = await this.prismaService.lecture.findFirst({
+      where: {
+        id: lectureId,
+        speakerId: speakerId,
+      },
+    });
+    if (!lecture) {
+      throw new NotFoundException('Lecture not found');
+    }
+    const lectureDto = new LectureDto(lecture);
+    const modelResponse = await this.processLectureQuestions(lectureDto);
+
+    return { lectureDto, modelResponse };
+  }
+
+  async getLectureQuestions(
+    lectureDto: LectureDto,
+    batchSize: number = 100,
+    page: number = 1,
+  ) {
+    const messages = await this.chatMessageModel
+      .find({ lectureId: lectureDto.id })
+      .sort({ createdAt: 'asc' })
+      .skip((page - 1) * batchSize)
+      .limit(batchSize)
+      .exec();
+
+    const messageContent = messages
+      .map((msg) => {
+        return `${msg.user.email}: ${msg.text}`;
+      })
+      .join('\n');
+
+    return {
+      lecture: lectureDto,
+      messages: messageContent,
+      totalMessages: messages.length,
+    };
+  }
+
+  async processLectureQuestions(lectureDto: LectureDto) {
+    const batchSize = 100;
+    let page = 1;
+    let lectureModel;
+    const allQuestions = [];
+
+    let isLastPage = false;
+
+    while (!isLastPage) {
+      const { lecture, messages, totalMessages } =
+        await this.getLectureQuestions(lectureDto, batchSize, page);
+      lectureModel = lecture;
+      if (!messages || totalMessages === 0) {
+        isLastPage = true;
+        break;
+      }
+
+      const generatedQuestions =
+        await this.openAiService.generateLectureQuestions({
+          lecture,
+          messages,
+        });
+
+      allQuestions.push(generatedQuestions);
+
+      page++;
+    }
+
+    return { questions: allQuestions.join('\n'), lectureModel };
+  }
+
   async getAllLectures(getLecturesDto: GetLecturesDto, userId: number) {
-    const { skip, limit, page, type, speakerEmail, sortBy, ...filters } =
-      getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
+    const {
+      skip,
+      limit,
+      page,
+      type,
+      speakerEmail,
+      sortBy,
+      speakerId,
+      ...filters
+    } = getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
     const where: Record<string, any> = {};
     Object.entries(filters).forEach(([key, value]) => {
       if (value) {
@@ -89,6 +181,16 @@ export class LectureService {
           mode: 'insensitive',
         },
       };
+    }
+
+    if (speakerId) {
+      const parsedSpeakerId = Number(speakerId);
+      if (!isNaN(parsedSpeakerId)) {
+        where.speaker = {
+          ...where.speaker,
+          id: parsedSpeakerId,
+        };
+      }
     }
 
     const orderBy: any = [];

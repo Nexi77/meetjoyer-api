@@ -13,4 +13,8 @@ export class GetLecturesDto extends PaginationDto {
   @IsOptional()
   @IsString()
   speakerEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  speakerId?: string;
 }

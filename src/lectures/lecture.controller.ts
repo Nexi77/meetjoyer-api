@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -32,12 +33,17 @@ import { UpdateLectureDto } from './dto/update-lecture.dto';
 import { GetLecturesDto } from './dto/get-lectures.dto';
 import { ApiPaginatedResponse } from 'src/common/decorators/paginated-response.decorator';
 import { SignInOutDto } from './dto/sign-in-out.dto';
+import { Response } from 'express';
+import { PdfService } from 'src/pdf/pdf.service';
 
 @ApiTags('Lectures')
 @UseGuards(RolesGuard)
 @Controller('lectures')
 export class LectureController {
-  constructor(private readonly lectureService: LectureService) {}
+  constructor(
+    private readonly lectureService: LectureService,
+    private readonly pdfService: PdfService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -73,6 +79,34 @@ export class LectureController {
   })
   async getAllLecturesWithNoPagination() {
     return this.lectureService.getAllLecturesWithNoPagination();
+  }
+
+  @Get('/questions/:lectureId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: 'File with list of questions' })
+  @ApiNotFoundResponse({ description: 'Lecture not found' })
+  @ApiParam({
+    name: 'lectureId',
+    description: 'ID of the lecture to retrieve questions from',
+  })
+  async getLectureQuestions(
+    @Param('lectureId', ParseIntPipe) lectureId: number,
+    @GetCurrentUserId() speakerId: number,
+    @Res() res: Response,
+  ) {
+    const { lectureDto, modelResponse } =
+      await this.lectureService.generateLectureQuestionsResponse(
+        lectureId,
+        speakerId,
+      );
+
+    this.pdfService.generateLecturePdf(
+      lectureDto.title,
+      lectureDto.description,
+      modelResponse.questions,
+      res,
+    );
   }
 
   @Get(':id')

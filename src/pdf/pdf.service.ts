@@ -1,0 +1,38 @@
+// src/pdf/pdf.service.ts
+import { Injectable } from '@nestjs/common';
+import * as PDFDocument from 'pdfkit';
+import { Response } from 'express';
+
+@Injectable()
+export class PdfService {
+  generateLecturePdf(
+    lectureTitle: string,
+    lectureDescription: string | null = '',
+    modelResponse: string,
+    res: Response,
+  ): void {
+    const doc = new PDFDocument();
+
+    res.setHeader(
+      'Content-disposition',
+      `attachment; filename=${lectureTitle}-questions.pdf`,
+    );
+    res.setHeader('Content-type', 'application/pdf');
+
+    doc.pipe(res);
+
+    doc.fontSize(24).text(lectureTitle, { align: 'center' });
+    doc.moveDown();
+
+    if (lectureDescription) {
+      doc.fontSize(12).text(lectureDescription);
+      doc.moveDown();
+    }
+
+    doc.fontSize(14).text('Generated Questions:', { underline: true });
+    doc.moveDown();
+    doc.fontSize(12).text(modelResponse);
+
+    doc.end();
+  }
+}
