@@ -97,16 +97,19 @@ export class EventsService {
         };
       }
     });
-    if (type) this.filterEventsBasedOnType(type, where, userId);
-    if (startDate) {
-      where.startDate = {
-        gte: new Date(startDate),
-      };
-    }
-    if (endDate) {
-      where.endDate = {
-        lte: new Date(endDate),
-      };
+    if (type)
+      this.filterEventsBasedOnType(type, where, userId, startDate, endDate);
+    else {
+      if (startDate) {
+        where.startDate = {
+          gte: new Date(startDate),
+        };
+      }
+      if (endDate) {
+        where.endDate = {
+          lte: new Date(endDate),
+        };
+      }
     }
     const [data, totalItems] = await Promise.all([
       this.prismaService.event.findMany({
@@ -268,31 +271,66 @@ export class EventsService {
     type: EventType,
     whereClauseObject: Record<string, any>,
     userId: number,
+    startDate?: string,
+    endDate?: string,
   ) {
+    const currentDate = new Date();
     switch (type) {
       case EventType.ONGOING:
-        whereClauseObject.startDate = {
-          lte: new Date(), // Less than or equal to the current date for ongoing events
-        };
-        whereClauseObject.endDate = {
-          gte: new Date(), // Greater than or equal to the current date to ensure it's still ongoing
-        };
+        // Base condition for ongoing events
+        whereClauseObject.startDate = { lte: currentDate };
+        whereClauseObject.endDate = { gte: currentDate };
+
+        // Refine startDate and endDate if provided by the user
+        if (startDate) {
+          const userStartDate = new Date(startDate);
+          whereClauseObject.startDate = {
+            lte: currentDate, // Ensure it’s ongoing
+            gte: userStartDate > currentDate ? currentDate : userStartDate, // Use user startDate only if before currentDate
+          };
+        }
+        if (endDate) {
+          const userEndDate = new Date(endDate);
+          whereClauseObject.endDate = {
+            gte: currentDate, // Ensure it’s ongoing
+            lte: userEndDate < currentDate ? currentDate : userEndDate, // Use user endDate only if after currentDate
+          };
+        }
         break;
       case EventType.UPCOMING:
-        whereClauseObject.startDate = {
-          gt: new Date(),
-        };
+        // Base condition for upcoming events
+        whereClauseObject.startDate = { gt: currentDate };
+
+        // Allow additional startDate filter only if it’s in the future
+        if (startDate && new Date(startDate) > currentDate) {
+          whereClauseObject.startDate = { gte: new Date(startDate) };
+        }
+
+        // Apply endDate filter if it’s also in the future
+        if (endDate && new Date(endDate) > currentDate) {
+          whereClauseObject.endDate = { lte: new Date(endDate) };
+        }
         break;
+
       case EventType.MINE:
+        // Apply base condition for events where the user is a participant
         whereClauseObject.lectures = {
           some: {
             participants: {
               some: {
-                id: userId, // User is a participant in the event's lectures
+                id: userId,
               },
             },
           },
         };
+        // Allow unrestricted date filters for "mine" since no constraints on type
+        if (startDate) {
+          whereClauseObject.startDate = { gte: new Date(startDate) };
+        }
+        if (endDate) {
+          whereClauseObject.endDate = { lte: new Date(endDate) };
+        }
+        break;
     }
   }
 }

@@ -155,6 +155,7 @@ export class LectureService {
       type,
       speakerEmail,
       sortBy,
+      endDate,
       speakerId,
       ...filters
     } = getParsedPaginationAndRest<GetLecturesDto>(getLecturesDto);
@@ -191,6 +192,15 @@ export class LectureService {
           id: parsedSpeakerId,
         };
       }
+    }
+
+    if (endDate) {
+      where.event = {
+        ...where.event,
+        endDate: {
+          lt: new Date(endDate),
+        },
+      };
     }
 
     const orderBy: any = [];
