@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
+import { join } from 'path';
 
 @Injectable()
 export class PdfService {
@@ -18,6 +19,16 @@ export class PdfService {
       `attachment; filename=${lectureTitle}-questions.pdf`,
     );
     res.setHeader('Content-type', 'application/pdf');
+
+    const fontPath = join(
+      __dirname,
+      '..',
+      'assets',
+      'fonts',
+      'Gilroy-Regular.ttf',
+    );
+
+    doc.font(fontPath);
 
     doc.pipe(res);
 
