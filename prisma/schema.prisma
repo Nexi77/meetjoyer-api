@@ -24,7 +24,6 @@ model User {
   organisedEvents   Event[]   @relation("OrganisedEvents")
   speakingLectures  Lecture[] @relation("SpeakerLectures")
   attendingLectures Lecture[] @relation("ParticipantLectures")
-  Message           Message[]
 
   @@map("users")
 }
@@ -65,16 +64,6 @@ model Lecture {
   participants User[] @relation("ParticipantLectures")
 
   @@map("lectures")
-}
-
-model Message {
-  id        Int      @id @default(autoincrement())
-  content   String
-  senderId  Int
-  sender    User     @relation(fields: [senderId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@map("messages")
 }
 
 enum Role {
